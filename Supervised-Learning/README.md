@@ -1,5 +1,5 @@
 # MO432: Aprendizado Supervisionado
- 
+Disciplina cursada no 1s2021
 Meu resumo do livro e das aulas (em português)
 
 Applied Predictive Modeling by Max Kuhn and Kjell Johnson <br>
