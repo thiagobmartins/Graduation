@@ -1,0 +1,40 @@
+---
+title: MO433 -- Aprendizado de Máquina Não Supervisionado
+subtitle: Trabalho 1 
+author: Thiago Bruschi Martins RA 120212
+output: pdf_document
+---
+
+ Obs: Este relatório foi desenvolvido utilizando a linguagem R no RStudio.
+```{r}
+
+# Importando as bibliotecas necessárias para gerar regras e visualiza-las
+library(arules)
+library(arulesViz)
+
+# Setando o workspace
+setwd("C:\\Users\\thiag\\OneDrive\\Documents\\Unicamp\\Master\\Unsupervised-Learning\\Trabalho 1")
+
+```
+
+Lendo o arquivo e visualizando o resumo das transações. Neste resumo podemos ver os itens mais frequentes e também a distribuição do tamanho das compras
+
+```{r}
+transacoes <- read.transactions('retail.txt', format = "basket", sep=" ")
+summary(transacoes)
+```
+Plotando um gráfico para melhor visualizar os itens mais frequentes do conjunto de dados. Vemos neste gráfico que os items 39 e 48 são muito mais frequentes que os demais, tendo suporte superior a 0.4. Depois deles, apenas três items possuem suporte superior a 0.1.
+```{r}
+itemFrequencyPlot(transacoes, topN=20, support=0.005)
+```
+
+ Agora vamos gerar regras utilizando o algoritmo Apriori. Através de uma lista de parâmetros nós definimos o suporte e a confiança mínima que desejamos para as regras. Na saída do comando podemos ver que foram geradas 37 regras.
+```{r}
+rules <- apriori(transacoes, parameter = list(supp = 0.005, conf = 0.9, target = "rules"))
+
+```
+   Utilizamos o comando inspect para visualizar as regras geradas e o comando head para ordená-las por lift. É notável que praticamente todas as regras, com exceção da primeira, possuem o item 38. O curioso é que o item 38 é apenas o terceiro item mais frequênte do conjunto de dados.
+```{r}
+inspect(head(rules, n = 37, by = "lift"))
+```
+   
