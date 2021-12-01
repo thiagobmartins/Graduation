@@ -1,0 +1,74 @@
+---
+title: MO433 -- Aprendizado de Máquina Não Supervisionado
+subtitle: Trabalho 3
+author: Thiago Bruschi Martins RA 120212
+output: pdf_document
+---
+
+ Obs: Este relatório foi desenvolvido utilizando a linguagem R no RStudio.
+```{r}
+library(dbscan)
+library(isotree)
+library(devtools)
+
+devtools::install_github("pridiltal/stray")
+
+# Setando o workspace
+setwd("C:\\Users\\thiag\\OneDrive\\Documents\\Unicamp\\Master\\Unsupervised-Learning\\Trabalho 3")
+
+# Leitura dos dados
+data <- read.csv('dados3.csv', sep = ",", header = TRUE)
+head(data)
+```
+# 1º Algoritmo: K-vizinhos mais próximos 
+
+Esta função do pacote stray, apresentada em aula, utiliza a ténica de verificar a distância entre os k-vizinhos mais próximos de cada ponto e ordená-los de acordo com estas distâncias. Após esta ordenação, é selecionado um threshold para classificar os dados como anomalias ou não utilizando a  Teoria do Valor extremo. Utilizando esta função obtivemos o seguinte resultado:
+
+```{r fig.width = 4, fig.height = 3}
+
+outliers_k <- stray::find_HDoutliers(data)
+stray::display_HDoutliers(data, outliers_k)
+
+```
+
+Observando a figura acima, vemos que antes de aplicar a técnica de k-vizinhos mais próximos, que é baseada em distância, a função aplicou uma redução de dimensionalidade com PCA. Isto significa que na verdade houve uma combinação de técnicas aqui. O total de outliers encontrando pela função foi 7. De acordo com os dados do enunciado, de que existem 7 outliers nos dados, aparentemente o resultado foi ótimo. Pela imagem observamos que pelo menos 3 desses 7 outliers são bem evidentes após a técnica do PCA. Mas como não sabemos exatamente quais são os pontos que são outliers, não podemos garantir que o resultado está correto. 
+Obs: O valor de K default para esta função é 10, mas testamos com K variando de 1 a 10 e o resultado se manteve durante todo este intervalo. Segue a imagem para K = 1, mostrando que o resultado se manteve.
+
+```{r fig.width = 4, fig.height = 3}
+
+outliers_k1 <- stray::find_HDoutliers(data, k = 1)
+stray::display_HDoutliers(data, outliers_k1)
+
+```
+Agora vamos verificar quais foram os pontos identificados como outliers
+
+```{r }
+print(outliers_k[1])
+```
+# 2º Algoritmo: Local Outlier Factor (LOF)
+
+Este algoritmo utiliza a distância entre os k-vizinhos mais próximos para realizar uma comparação entre a densidade dos dados.
+Lembrando que quanto maior o LOF, maior a diferença de densidade entre os dados observados, e portanto, maior chance de detercarmos uma anomalia. Aqui listamos os LOF mais altos (em ordem decrescente) e depois listamos os dados com LOF > 3, que resultou nos 7 dados com mais chances de serem anomalias. Coincidentemente, foi o mesmo resultado do algoritmo anterior, o que sugere que seja um bom resultado, dado que os dois algoritmos convergiram.
+
+Obs: O valor default de k para esta função é 5.
+
+```{r  fig.width = 4, fig.height = 3}
+message('Lista decrescente dos LOF mais altos:\n')
+lof <- lof(data)
+head(sort(lof, decreasing = TRUE), 20)
+message('\nIndice dos dados com LOF > 3 (anomalias):\n')
+which(lof > 3)
+```
+# 3º Algoritmo: Isolation Forest
+Este algoritmo cria n árvores que dividem hierarquicamente os dados de forma aleatória. Este modelo assume que os outliers, por estarem mais distantes de dados "normais", serão isolados pelas árvores mais rapidamente. Desta forma, terão uma altura média menor do que a dos outros dados. Utilizamos aqui os valores default do modelo e obtivemos um resultado coerente com as outras duas técnicas utilizadas. A predição deste modelo é um score para cada observação, quanto mais alto esse score, maior a chance da observação ser uma anomalia. Sendo assim, ordenamos o resultado de forma decrescente para observamos os 10 maiores scores obtidos. Vemos que os 7 maiores scores obtidos foram acima de 0.72. Enquanto o 8º já se encontra em torno de 0.63.
+```{r}
+
+iso <- isolation.forest(data)
+pred <- predict(iso, data)
+head(sort(pred, decreasing = TRUE), 10)
+#cat("Point with highest outlier score: ",  which.max(pred), "\n")
+```
+# Conclusão
+Os três algoritmos utilizados apontaram os mesmos 7 pontos como outliers, são eles: 1, 224, 359, 555, 665, 754, 833.
+Dado que os 3 algoritmos utilizam técnicas diferentes e os 3 convergiram para o mesmo resultado, provavelmente o resultado é coerente.
+
